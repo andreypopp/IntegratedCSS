@@ -1,24 +1,21 @@
 IntegratedStyle
 ===============
 
-After integrating HTML into JavaScript by [React.js][], a logical next step is
-to do the same for CSS.
+The motivation for IntegratedStyle is that CSS is problematic to maintain and
+React components as an abstraction give all the borders you actually need.
 
-Build with help of the awesome [recast][] library.
-
-Example
--------
+IntegratedStyle proposes that styles for a component should be defined in the
+JavaScript code as a part of the component definition itself.
 
 ```
-var React           = require('react/addons')
+var React = require('react')
 var IntegratedStyle = require('integratedstyle')
-var vars            = require('./vars')
 
 var Button = React.createClass({
 
   normalStyle: IntegratedStyle(function() {
     return {
-      backgroundColor: vars.orange
+      backgroundColor: 'orange'
     }
   }),
 
@@ -38,14 +35,10 @@ var Button = React.createClass({
   },
 
   render: function() {
-    var styles = [
-      this.normalStyle(),
-      this.activeStyle()
-    ]
     return (
-      <div styles={styles} onClick={this.onClick}>
+      <button styles={[this.normalStyle(), this.activeStyle()]} onClick={this.onClick}>
         Hello, I'm styled
-      </div>
+      </button>
     )
   },
 
@@ -56,7 +49,26 @@ var Button = React.createClass({
 })
 ```
 
-Turns into the following CSS:
+The example above defines two styles for the `Button` component, `normalStyle`
+and `activeStyle`.
+
+Styles are defined as regular methods wrapped into `IntegratedStyle` method
+decorator. This fact makes it possible to use the full power of JavaScript: you
+can require modules with variables to be used in styles or use predefined styles
+as mixins and so on.
+
+Styles are applied to the component via `styles` property which is provide by
+IntegratedStyle for all React.DOM components.
+
+By default all styles are applied in the DOM inline, through `style` attribute.
+This is OK for during development or small experiments but in production you
+probably would want to use separate CSS bundle with styles.
+
+IntegratedStyle provides [Webpack][] loader which can generate CSS classes for
+component styles during bundling.
+
+With the help of webpack loader the example above will generate the following
+CSS:
 
 ```
 .a {
@@ -64,7 +76,8 @@ Turns into the following CSS:
 }
 ```
 
-while the JavaScript code itself gets transformed into:
+While the JavaScript code itself gets transformed into:
+
 ```
 var React           = require('react/addons')
 var IntegratedStyle = require('integratedstyle')
@@ -110,13 +123,9 @@ var Button = React.createClass({
 })
 ```
 
-Note how `normalStyle` style declaration is extracted into CSS class.
-
-Motivation
-----------
-
-CSS is problematic to maintain and components give all the borders you actually
-need.
+Note how `normalStyle` style declaration is extracted into CSS class because it
+is completely "static" (doesn't depend on the component's props and state) while
+`activeStyle` is left as-is due to its dependency on `this.state.active`.
 
 What does it actually do?
 -------------------------
@@ -166,4 +175,4 @@ MIT
 
 [React.js]: http://github.com/facebook/react
 [recast]: http://github.com/benjamn/recast
-[webpack]: https://webpack.github.io
+[Webpack]: https://webpack.github.io
